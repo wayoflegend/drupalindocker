@@ -1,0 +1,20 @@
+# Ignoring Drupal folder:
+/drupal/
+# Ignoring log files:
+!/docker/var/log/**/.gitkeep
+**.log
+# Ignoring SSH keys:
+/docker/ssh/
+!/docker/ssh/.gitkeep
+# Ignoring the custom docker compose adapted to your own project:
+/docker-compose.yml
+# Ignoring persisted SGBD data:
+/docker/etc/mysql/data/
+!/docker/etc/mysql/data/persist/.gitkeep
+# Ignoring persisted Redis data:
+/docker/etc/redis/data/
+!/docker/etc/redis/data/persist/.gitkeep
+# Ignoring IDE files:
+/.idea
+**/.DS_Store
+!.gitignore

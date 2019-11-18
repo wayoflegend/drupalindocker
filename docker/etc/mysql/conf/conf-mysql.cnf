@@ -1,0 +1,4 @@
+[mysqld]
+max_allowed_packet=10M
+character_set_server=utf8mb4
+collation_server=utf8mb4_unicode_ci

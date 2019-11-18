@@ -1,0 +1,137 @@
+# Adopt version 3 syntax:
+#   https://docs.docker.com/compose/compose-file/#/versioning
+version: '3'
+
+services:
+  ###########################
+  # Setup the Nginx container
+  ###########################
+  nginx:
+    container_name: community_nginx_1
+    image: nginx:1.10.2
+    ports:
+    - 8082:80
+    links:
+    - php-fpm
+    volumes:
+    - ./drupal:/usr/share/nginx/community
+    - ./docker/etc/nginx/community.conf:/etc/nginx/sites-enabled/community.conf
+    - ./docker/etc/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    - ./docker/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./docker/etc/nginx/mime.types:/etc/nginx/mime.types:ro
+    - ./docker/etc/nginx/proxy.conf:/etc/nginx/proxy.conf:ro
+    - ./docker/etc/nginx/fastcgi.conf:/etc/nginx/fastcgi.conf:ro
+    - ./docker/var/log/nginx:/logs
+    stdin_open: true
+    tty: true
+    networks:
+      docker_dev_network:
+        aliases:
+        - "community.docker"
+
+
+  ###########################
+  # Setup the PHP FPM container
+  ###########################
+  php-fpm:
+    container_name: community_php-fpm_1
+    build: docker/DockerFiles/php/fpm
+    user: root
+    expose:
+    - 9000
+    links:
+    - mariadb
+    volumes:
+    - ./drupal:/usr/share/nginx/community
+    - ./docker/etc/php/fpm/php.ini:/usr/local/etc/php/php.ini
+    - ./docker/var/log/php-fpm:/tmp/php
+    working_dir: /usr/share/nginx/community
+    networks:
+    - docker_dev_network
+
+  ###########################
+  # Setup the PHP CLI container
+  ###########################
+  php-cli:
+    container_name: community_php-cli_1
+    build: docker/DockerFiles/php/cli
+    environment:
+      PHP_TIMEZONE: Europe/Paris
+    links:
+    - mariadb
+    #    - mailhog
+    volumes:
+    - ./drupal:/usr/share/nginx/community
+    - ./docker/etc/php/cli/php.ini:/usr/local/etc/php/php.ini
+    - ./docker/var/log/php-cli:/tmp/php
+    - ./docker/ssh:/root/.ssh/
+    working_dir: /usr/share/nginx/community
+    tty: true
+    stdin_open: true
+    networks:
+    - docker_dev_network
+
+  ###########################
+  # Setup the Database (MariaDB) container
+  ###########################
+  mariadb:
+    container_name: community_mariadb_1
+    image: mariadb:10.1
+    restart: always
+    ports:
+    - 3307:3306
+    volumes:
+    # For windows and Mac OS
+    #- maria_db:/var/lib/mysql
+    # For linux
+    - ./docker/etc/mysql/data/persist:/var/lib/mysql
+    - ./docker/etc/mysql/conf:/etc/mysql/conf.d:ro
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+      MYSQL_USER: 'drupal'
+      MYSQL_PASSWORD: 'drupal'
+      MYSQL_DATABASE: 'drupal_community'
+      MYSQL_ROOT_PASSWORD: 'communityadmin'
+    networks:
+    - docker_dev_network
+
+  ###########################
+  # Setup adminer container
+  ###########################
+  adminer:
+    container_name: community_adminer_1
+    image: adminer
+    restart: always
+    ports:
+    - 8080:8080
+    links:
+    - mariadb
+    networks:
+    - docker_dev_network
+
+
+
+  ###########################
+  # Setup Redis:alpine container
+  ###########################
+  redis:
+    container_name: community_redis_1
+    image: redis:5-alpine
+    ports:
+    - "6380:6379"
+    command: ["redis-server"]
+    hostname: redis
+    networks:
+    - docker_dev_network
+    volumes:
+    - ./docker/etc/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    #Location where redis will stores the rdb data
+    - ./docker/etc/redis/data/persist:/data
+
+networks:
+  docker_dev_network:
+    driver: bridge
+
+
+#volumes:
+#  maria_db:
