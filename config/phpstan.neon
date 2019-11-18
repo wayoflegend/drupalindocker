@@ -1,0 +1,2 @@
+includes:
+  - vendor/mglaman/phpstan-drupal/extension.neon

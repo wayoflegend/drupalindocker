@@ -1,0 +1,27 @@
+parameters:
+  fileExtensions:
+  	- php
+  	- module
+  	- inc
+  	- install
+  	- theme
+  excludes_analyse:
+      - *Test.php
+      - *TestBase.php
+  ignoreErrors:
+  	- '#Call to an undefined method [a-zA-Z0-9\\_]+::method\(\)#'
+  	- '#Call to an undefined method [a-zA-Z0-9\\_]+::expects\(\)#'
+  	- '#Access to an undefined property PHPUnit_Framework_MockObject_MockObject::\$[a-zA-Z0-9_]+#'
+  	- '#Call to an undefined method PHPUnit_Framework_MockObject_MockObject::[a-zA-Z0-9_]+\(\)#'
+  drupal:
+    drupal_root: %currentWorkingDirectory%
+    entityTypeStorageMapping:
+    		node: Drupal\node\NodeStorage
+    		taxonomy_term: Drupal\taxonomy\TermStorage
+    		user: Drupal\user\UserStorage
+
+services:
+	-
+		class: PHPStan\Rules\Drupal\PluginManager\PluginManagerSetsCacheBackendRule
+		tags:
+			- phpstan.rules.rule
